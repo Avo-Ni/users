@@ -46,10 +46,21 @@ class UserController extends AbstractController
     public function index(SerializerInterface $serializer): JsonResponse
     {
         $users = $this->userRepository->findAll();
-        $data = $serializer->normalize($users);
+        $data = array_map(function(User $user) {
+            return [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'userIdentifier' => $user->getUserIdentifier(),
+                'password' => $user->getPassword(),
+                'firstname' => $user->getFirstname(),
+                'lastname' => $user->getLastname(),
+                'roles' => implode(', ', $user->getRoles())
+            ];
+        }, $users);
 
         return new JsonResponse($data, Response::HTTP_OK);
     }
+
 
     #[Route('/api/users', name: 'api_userss', methods: ['GET'])]
     public function list(SerializerInterface $serializer): JsonResponse
@@ -108,8 +119,11 @@ class UserController extends AbstractController
     }
 
     #[Route('/api/user/{id}', name: 'api_user_update', methods: ['PUT'])]
-    public function update(int $id, Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
+    public function update(
+        int $id,
+        Request $request,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
         $data = json_decode($request->getContent(), true);
 
         $user = $this->userRepository->find($id);
@@ -117,39 +131,53 @@ class UserController extends AbstractController
             return new JsonResponse(['message' => 'Utilisateur non trouvé.'], JsonResponse::HTTP_NOT_FOUND);
         }
 
+        // Mise à jour de l'email
         if (isset($data['email']) && !empty($data['email'])) {
-            if ($this->userRepository->findOneBy(['email' => $data['email']]) && $user->getEmail() !== $data['email']) {
+            $existingUser = $this->userRepository->findOneBy(['email' => $data['email']]);
+            if ($existingUser && $existingUser->getId() !== $user->getId()) {
                 return new JsonResponse(['message' => 'Cet email est déjà utilisé.'], JsonResponse::HTTP_BAD_REQUEST);
             }
             $user->setEmail($data['email']);
         }
 
+        // Mise à jour du mot de passe
         if (isset($data['password']) && !empty($data['password'])) {
             $encodedPassword = $this->passwordHasher->hashPassword($user, $data['password']);
             $user->setPassword($encodedPassword);
         }
 
+        // Mise à jour du prénom
         if (isset($data['firstname'])) {
             $user->setFirstname($data['firstname']);
         }
 
+        // Mise à jour du nom de famille
         if (isset($data['lastname'])) {
             $user->setLastname($data['lastname']);
         }
 
-        if (isset($data['roleId']) && !empty($data['roleId'])) {
-            $role = $this->roleRepository->findOneBy(['id' => $data['roleId']]);
+        // Mise à jour des rôles
+        /*if (isset($data['roleId']) && !empty($data['roleId'])) {
+            $role = $this->roleRepository->find($data['roleId']);
             if (!$role) {
                 return new JsonResponse(['message' => 'Le rôle spécifié n\'existe pas.'], JsonResponse::HTTP_BAD_REQUEST);
             }
-            $user->setRoles([$role]);
-        }
+
+            foreach ($user->getRoles() as $currentRoleName) {
+                $roleEntity = $this->roleRepository->findOneBy(['name' => $currentRoleName]);
+                if ($roleEntity) {
+                    $user->removeRole($roleEntity);
+                }
+            }
+            $user->addRole($role);
+        }*/
 
         $entityManager->persist($user);
         $entityManager->flush();
 
         return new JsonResponse(['message' => 'Utilisateur mis à jour avec succès.'], JsonResponse::HTTP_OK);
     }
+
 
 
     #[Route('/api/user/{id}', name: 'api_user_delete', methods: ['DELETE'])]

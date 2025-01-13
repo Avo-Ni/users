@@ -9,6 +9,7 @@ import RolePage from "./pages/RolePage.vue";
 import UserPage from "./pages/UserPage.vue";
 import ResourcePage from "./pages/ResourcePage.vue";
 import PrivilegePage from "./pages/PrivilegePage.vue";
+import PortfolioPage from "./pages/PortfolioPage.vue";
 
 export default {
   name: 'App',
@@ -17,6 +18,7 @@ export default {
     UserPage,
     ResourcePage,
     PrivilegePage,
+    PortfolioPage,
   }
 };
 </script>

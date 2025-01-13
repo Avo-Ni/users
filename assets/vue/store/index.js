@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia';
-import {useRoles} from '../services/roleService';
-import {useUsers} from '../services/userService';
-import {useResource} from '../services/resourceService';
-import {useUserPrivilege} from '../services/userPrivilegeService';
+import { useRoles } from '../services/roleService';
+import { useUsers } from '../services/userService';
+import { useResource } from '../services/resourceService';
+import { useUserPrivilege } from '../services/userPrivilegeService';
 
 export const useMainStore = defineStore('main', {
   state: () => ({
@@ -15,19 +15,20 @@ export const useMainStore = defineStore('main', {
 
   getters: {
     getRoleById: (state) => (roleId) =>
-      state.roles.find((role) => role.id === roleId),
+        state.roles.find((role) => role.id === roleId),
     getUserById: (state) => (userId) =>
-      state.users.find((user) => user.id === userId),
+        state.users.find((user) => user.id === userId),
     getResourceById: (state) => (resourceId) =>
-      state.resources.find((resource) => resource.id === resourceId),
+        state.resources.find((resource) => resource.id === resourceId),
     getUserPrivilegesByUserId: (state) => (userId) =>
-      state.userPrivileges.filter((privilege) => privilege.user.id === userId),
+        state.userPrivileges.filter((privilege) => privilege.user.id === userId),
     isUserAllowedForResource: (state) => (resourceId) => {
-      if (!state.selectedUser) return false;
+      if (!state.selectedUser || !state.selectedUser.id) return false;
       return state.userPrivileges.some(
-        (privilege) =>
-          privilege.user.id === state.selectedUser.id &&
-          privilege.resource.id === resourceId
+          (privilege) =>
+              privilege.user.id === state.selectedUser.id &&
+              privilege.resource.id === resourceId &&
+              privilege.isAllowed
       );
     },
   },
@@ -35,7 +36,7 @@ export const useMainStore = defineStore('main', {
   actions: {
     async fetchRoles() {
       try {
-        const {data} = await useRoles.getAllRoles();
+        const { data } = await useRoles.getAllRoles();
         this.roles = data;
       } catch (error) {
         console.error('Error fetching roles:', error);
@@ -44,7 +45,7 @@ export const useMainStore = defineStore('main', {
 
     async fetchUsers() {
       try {
-        const {data} = await useUsers.getAllUsers();
+        const { data } = await useUsers.getAllUsers();
         this.users = data;
       } catch (error) {
         console.error('Error fetching users:', error);
@@ -53,7 +54,7 @@ export const useMainStore = defineStore('main', {
 
     async fetchResources() {
       try {
-        const {data} = await useResource.getAllResources();
+        const { data } = await useResource.getAllResources();
         this.resources = data;
       } catch (error) {
         console.error('Error fetching resources:', error);
@@ -62,8 +63,14 @@ export const useMainStore = defineStore('main', {
 
     async fetchUserPrivileges(userId) {
       try {
-        const {data} = await useUserPrivilege.getUserPrivileges(userId);
-        this.userPrivileges = data.user.resources || [];
+        const { data } = await useUserPrivilege.getUserPrivileges(userId);
+        this.userPrivileges = data.user.resources.flatMap(resource =>
+            resource.userPrivileges.map(privilege => ({
+              user: { id: data.user.id },
+              resource: { id: resource.id },
+              isAllowed: privilege.allowed,
+            }))
+        );
         this.selectedUser = data.user;
       } catch (error) {
         console.error('Error fetching user privileges:', error);
@@ -72,9 +79,13 @@ export const useMainStore = defineStore('main', {
       }
     },
 
-    async upsertUserPrivilege({userId, resourceId, isAllowed}) {
+    async upsertUserPrivilege({ userId, resourceId, isAllowed }) {
       try {
-        const data = await useUserPrivilege.updatePrivileges({userId, resourceId, isAllowed});
+        const data = await useUserPrivilege.updatePrivileges({
+          userId,
+          resourceId,
+          isAllowed,
+        });
         console.log('API response after update:', data);
         this.updateUserPrivilege(data);
       } catch (error) {
@@ -88,15 +99,15 @@ export const useMainStore = defineStore('main', {
         return;
       }
       const index = this.userPrivileges.findIndex(
-        (privilege) =>
-          privilege.user.id === userPrivilege.user.id &&
-          privilege.resource.id === userPrivilege.resource.id
+          (privilege) =>
+              privilege.user.id === userPrivilege.user.id &&
+              privilege.resource.id === userPrivilege.resource.id
       );
       if (index !== -1) {
         this.userPrivileges[index] = userPrivilege;
       } else {
         this.userPrivileges.push(userPrivilege);
       }
-    }
-  }
+    },
+  },
 });

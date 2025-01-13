@@ -10,7 +10,7 @@ export const useUserPrivilege = {
             const response = await axios.post('/user-privileges', {
                 userId,
                 resourceId,
-                isAllowed
+                isAllowed,
             });
             return response.data;
         } catch (error) {
