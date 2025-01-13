@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="558167c5-cee3-4c56-a55d-d90801cf7f45" name="devspace" url="https://devspace.hdb-solutions.com/">
+        <fileTransfer rootFolder="/srv/www" accessType="SFTP" host="51.38.55.86" port="1818" sshConfigId="86e0ee65-7569-4284-b0c6-d623d264aabc" sshConfig="root@51.38.55.86:1818 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

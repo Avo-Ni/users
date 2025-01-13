@@ -1,0 +1,49 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+parameters:
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    App\Service\ResourceAccessService:
+        public: true
+        arguments:
+            $resourceRepository: '@App\Repository\ResourceRepository'
+
+    App\Repository\UserPrivilegesRepository:
+        factory: ['@doctrine.orm.entity_manager', getRepository]
+        arguments:
+            - App\Entity\UserPrivileges
+
+    App\Repository\LiveChatRepository:
+        arguments:
+            $conn: '@doctrine.dbal.livechat_connection'
+
+    App\Repository\BookingRepository:
+        arguments:
+            $bookingConn: '@doctrine.dbal.booking_connection'
+
+
+    # Voter de contrôle d'accès
+    App\Security\Voter\ResourceAccessVoter:
+        tags:
+            - { name: security.voter }
+        arguments:
+            $userPrivilegeRepository: '@App\Repository\UserPrivilegeRepository'
+            $resourceAccessService: '@App\Service\ResourceAccessService'
+            $requestStack: '@request_stack'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones

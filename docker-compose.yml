@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  database_app:
+    container_name: database_app
+    image: mysql:8.0 
+    restart: on-failure
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: app
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - '4306:3306'
+    volumes:
+      - mysql_app:/var/lib/mysql
+    networks:
+      - app
+
+  php_app:
+    container_name: php_app
+    build:
+      context: ./
+      dockerfile: Docker/php.dockerfile
+    restart: on-failure
+    ports:
+      - '9001:9000'
+    volumes:
+      - ./:/var/www/symfony_docker
+    depends_on:
+      - database_app
+    networks:
+      - app
+
+  nginx_app:
+    container_name: nginx_app
+    image: nginx:stable-alpine
+    restart: on-failure
+    ports:
+      - '80:80'
+    volumes:
+      - ./:/var/www/symfony_docker
+      - ./Docker/:/etc/nginx/conf.d/
+      - ./Docker/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php_app
+      - database_app
+    networks:
+      - app
+
+networks:
+  app:
+
+volumes:
+  mysql_app:
