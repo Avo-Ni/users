@@ -1,646 +1,203 @@
 <template>
-  <div class="hotel-portfolio">
-    <!-- En-tête avec navigation -->
-    <header class="header">
-      <nav class="navigation">
-        <div class="logo">
-          <img :src="hotelInfo.logoUrl" :alt="hotelInfo.name">
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-absolute bg-primary shadow-lg fixed-top">
+      <div class="container">
+        <a class="navbar-brand text-warning animate__animated animate__fadeInDown" href="#home">Calme et Bien Etre</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          @click="toggleNavbar"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div :class="['collapse', 'navbar-collapse', { show: isNavbarOpen }]"><ul class="navbar-nav mx-auto">
+            <li class="nav-item" v-for="(link, index) in navLinks" :key="index">
+              <a
+                class="nav-link text-warning animate__animated animate__fadeInUp"
+                :href="link.path"
+                @click.prevent="scrollToSection(link.path)"
+                @mouseover="hoverLink($event)"
+                @mouseleave="leaveLink($event)">
+                {{ link.name }}
+              </a>
+            </li>
+          </ul>
+          <ul class="nav navbar-nav">
+            <li v-for="(icon, index) in socialLinks" :key="index" class="nav-item">
+              <a
+                class="nav-link text-warning animate__animated animate__zoomIn"
+                :href="icon.url"
+                target="_blank">
+                <i :class="icon.iconClass"></i>
+              </a>
+            </li>
+          </ul>
         </div>
-        <div class="nav-links">
-          <a v-for="section in sections"
-             :key="section.id"
-             :href="'#' + section.id"
-             @click.prevent="scrollToSection(section.id)">
-            {{ section.name }}
+      </div>
+    </nav>
+
+    <div id="home" class="page-header min-vh-100 d-flex align-items-center"
+      :style="{
+        backgroundImage: 'url(https://images.unsplash.com/photo-1520769945061-0a448c463865?auto=format&fit=crop&w=1950&q=80)',
+      }">
+      <span class="mask bg-gradient-dark opacity-5"></span>
+      <div class="container text-center">
+        <h1 class="text-warning mb-4 animate__animated animate__fadeInLeft">Prennez Soin de Vous</h1>
+        <p class="text-light opacity-8 lead px-5 animate__animated animate__fadeInUp">
+          The time is now for it be okay to be great. People in this world shun people for being nice.
+        </p>
+        <div class="buttons d-flex justify-content-center gap-3">
+          <MaterialButton color="warning" class="mt-4 animate__animated animate__pulse animate__infinite" @click="scrollToSection('#about')">Get Started</MaterialButton>
+          <MaterialButton color="none" class="text-warning shadow-none mt-4 animate__animated animate__fadeIn" @click="scrollToSection('#about')">Read more</MaterialButton>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section id="about" class="py-9 section-transition">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-6 my-auto">
+          <h3>Read More About Us</h3>
+          <p class="pe-5">
+            Pain is what we go through as we become older. We get insulted by others, lose trust for those others. We get back stabbed by friends.
+          </p>
+          <a href="javascript:;" class="text-success icon-move-right" @click="scrollToSection('#services')">
+            More about us <i class="fas fa-arrow-right text-sm ms-1"></i>
           </a>
         </div>
-        <div class="booking-button">
-          <button @click="openBookingModal">Réserver maintenant</button>
+        <div class="col-lg-6 mt-lg-0 mt-5 ps-lg-0 ps-0">
+          <AboutUsOption icon="mediation" content="It becomes harder for us to give others a hand.<br />We get our heart broken by people we love." />
+          <AboutUsOption icon="settings_overscan" content="As we live, our hearts turn colder.<br />Cause pain is what we go through as we become older." />
+          <AboutUsOption icon="token" content="When we lose family over time.<br />What else could rust the heart more over time? Blackgold." />
         </div>
-      </nav>
-    </header>
-
-    <!-- Hero Section avec Carousel -->
-    <section id="hero" class="hero-section">
-      <div class="carousel">
-        <transition-group name="fade">
-          <img v-for="(image, index) in heroImages"
-               :key="image.id"
-               v-show="currentImageIndex === index"
-               :src="image.url"
-               :alt="image.alt">
-        </transition-group>
-        <div class="carousel-controls">
-          <button @click="prevImage">←</button>
-          <button @click="nextImage">→</button>
-        </div>
-      </div>
-      <div class="hero-content">
-        <h1>{{ hotelInfo.name }}</h1>
-        <p>{{ hotelInfo.tagline }}</p>
-      </div>
-    </section>
-
-    <!-- Section À propos -->
-    <section id="about" class="about-section">
-      <h2>À propos de notre hôtel</h2>
-      <div class="about-content">
-        <div class="about-text">
-          <p>{{ hotelInfo.description }}</p>
-        </div>
-        <div class="key-features">
-          <div v-for="feature in hotelInfo.features"
-               :key="feature.id"
-               class="feature">
-            <i :class="feature.icon"></i>
-            <h3>{{ feature.title }}</h3>
-            <p>{{ feature.description }}</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section Chambres -->
-    <section id="rooms" class="rooms-section">
-      <h2>Nos Chambres</h2>
-      <div class="rooms-grid">
-        <div v-for="room in rooms"
-             :key="room.id"
-             class="room-card"
-             @click="openRoomDetails(room)">
-          <img :src="room.mainImage" :alt="room.name">
-          <div class="room-info">
-            <h3>{{ room.name }}</h3>
-            <p>{{ room.shortDescription }}</p>
-            <div class="room-features">
-              <span v-for="feature in room.features"
-                    :key="feature">{{ feature }}</span>
-            </div>
-            <div class="room-price">
-              À partir de {{ room.price }}€ / nuit
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section Services -->
-    <section id="services" class="services-section">
-      <h2>Nos Services</h2>
-      <div class="services-grid">
-        <div v-for="service in services"
-             :key="service.id"
-             class="service-card">
-          <i :class="service.icon"></i>
-          <h3>{{ service.name }}</h3>
-          <p>{{ service.description }}</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section Galerie -->
-    <section id="gallery" class="gallery-section">
-      <h2>Galerie</h2>
-      <div class="gallery-grid">
-        <div v-for="image in galleryImages"
-             :key="image.id"
-             class="gallery-item"
-             @click="openGalleryModal(image)">
-          <img :src="image.thumbnail" :alt="image.alt">
-        </div>
-      </div>
-    </section>
-
-    <!-- Section Avis -->
-    <section id="reviews" class="reviews-section">
-      <h2>Avis de nos clients</h2>
-      <div class="reviews-carousel">
-        <transition-group name="slide">
-          <div v-for="review in displayedReviews"
-               :key="review.id"
-               class="review-card">
-            <div class="review-rating">
-              <i v-for="n in 5"
-                 :key="n"
-                 :class="['star', n <= review.rating ? 'filled' : '']"></i>
-            </div>
-            <p class="review-text">{{ review.text }}</p>
-            <div class="review-author">
-              <img :src="review.authorImage" :alt="review.authorName">
-              <span>{{ review.authorName }}</span>
-            </div>
-          </div>
-        </transition-group>
-      </div>
-    </section>
-
-    <!-- Section Contact -->
-    <section id="contact" class="contact-section">
-      <h2>Contact</h2>
-      <div class="contact-content">
-        <div class="contact-info">
-          <div class="address">
-            <h3>Adresse</h3>
-            <p>{{ hotelInfo.address }}</p>
-          </div>
-          <div class="phone">
-            <h3>Téléphone</h3>
-            <p>{{ hotelInfo.phone }}</p>
-          </div>
-          <div class="email">
-            <h3>Email</h3>
-            <p>{{ hotelInfo.email }}</p>
-          </div>
-        </div>
-        <form class="contact-form" @submit.prevent="submitContactForm">
-          <div class="form-group">
-            <label for="name">Nom</label>
-            <input type="text" id="name" v-model="contactForm.name" required>
-          </div>
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" v-model="contactForm.email" required>
-          </div>
-          <div class="form-group">
-            <label for="message">Message</label>
-            <textarea id="message" v-model="contactForm.message" required></textarea>
-          </div>
-          <button type="submit">Envoyer</button>
-        </form>
-      </div>
-    </section>
-
-    <!-- Modals -->
-    <div v-if="showBookingModal" class="modal booking-modal">
-      <div class="modal-content">
-        <button class="close-modal" @click="closeBookingModal">&times;</button>
-        <h2>Réserver une chambre</h2>
-        <form @submit.prevent="submitBooking">
-          <div class="form-group">
-            <label for="checkIn">Arrivée</label>
-            <input type="date" id="checkIn" v-model="bookingForm.checkIn">
-          </div>
-          <div class="form-group">
-            <label for="checkOut">Départ</label>
-            <input type="date" id="checkOut" v-model="bookingForm.checkOut">
-          </div>
-          <div class="form-group">
-            <label for="guests">Nombre de personnes</label>
-            <select id="guests" v-model="bookingForm.guests">
-              <option v-for="n in 4" :key="n" :value="n">{{ n }}</option>
-            </select>
-          </div>
-          <button type="submit">Confirmer la réservation</button>
-        </form>
       </div>
     </div>
+  </section>
 
-    <div v-if="showGalleryModal" class="modal gallery-modal">
-      <div class="modal-content">
-        <button class="close-modal" @click="closeGalleryModal">&times;</button>
-        <img :src="selectedImage.fullSize" :alt="selectedImage.alt">
+  <section>
+    <div class="container py-4">
+      <div class="row">
+        <div class="col-lg-7 mx-auto d-flex justify-content-center flex-column">
+          <h3 class="text-center">Contact us</h3>
+          <form role="form" id="contact-form" method="post" autocomplete="off">
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <MaterialInput
+                    class="input-group-dynamic mb-4"
+                    :label="{ text: 'First Name', class: 'form-label' }"
+                    type="text"
+                  />
+                </div>
+                <div class="col-md-6 ps-2">
+                  <MaterialInput
+                    class="input-group-dynamic"
+                    :label="{ text: 'Last Name', class: 'form-label' }"
+                    type="text"
+                  />
+                </div>
+              </div>
+              <div class="mb-4">
+                <MaterialInput
+                  class="input-group-dynamic"
+                  :label="{ text: 'Email Address', class: 'form-label' }"
+                  type="email"
+                />
+              </div>
+              <MaterialTextArea
+                class="input-group-static mb-4"
+                id="message"
+                :rows="4"
+                >Your message</MaterialTextArea
+              >
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <MaterialSwitch
+                  class="mb-4 d-flex align-items-center"
+                  id="flexSwitchCheckDefault"
+                  checked
+                  labelClass="ms-3 mb-0"
+                >
+                  I agree to the
+                  <a href="javascript:;" class="text-dark"
+                    ><u>Terms and Conditions</u></a
+                  >.
+                </MaterialSwitch>
+
+                <div class="col-md-12">
+                  <MaterialButton
+                    type="submit"
+                    variant="gradient"
+                    color="dark"
+                    fullWidth
+                    >Send Message</MaterialButton
+                  >
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
-
-    <div v-if="showRoomDetailsModal" class="modal room-details-modal">
-      <div class="modal-content">
-        <button class="close-modal" @click="closeRoomDetailsModal">&times;</button>
-        <h2>{{ selectedRoom.name }}</h2>
-        <img :src="selectedRoom.mainImage" :alt="selectedRoom.name">
-        <p>{{ selectedRoom.description }}</p>
-        <div class="room-features">
-          <span v-for="feature in selectedRoom.features" :key="feature">{{ feature }}</span>
-        </div>
-        <div class="room-price">
-          À partir de {{ selectedRoom.price }}€ / nuit
-        </div>
-        <button @click="openBookingModal">Réserver maintenant</button>
-      </div>
-    </div>
-  </div>
+  </section>
 </template>
 
 <script>
 export default {
-  name: 'HotelPortfolio',
   data() {
     return {
-      hotelInfo: {
-        name: 'Grand Hôtel Palace',
-        tagline: 'Une expérience de luxe inoubliable',
-        logoUrl: 'https://via.placeholder.com/150',
-        description: 'Notre établissement de luxe vous accueille dans un cadre exceptionnel...',
-        features: [
-          { id: 1, icon: 'fa-spa', title: 'Spa', description: 'Un espace bien-être de 500m²' },
-          { id: 2, icon: 'fa-restaurant', title: 'Restaurant', description: 'Cuisine gastronomique' },
-          // ... autres caractéristiques
-        ],
-        address: '123 Avenue du Luxe, 75008 Paris',
-        phone: '+33 1 23 45 67 89',
-        email: 'contact@grandhotelpalace.com'
-      },
-      heroImages: [
-        { id: 1, url: 'https://via.placeholder.com/1200x600', alt: 'Façade de l\'hôtel' },
-        { id: 2, url: 'https://via.placeholder.com/1200x600', alt: 'Suite présidentielle' },
-        // ... autres images
+      isNavbarOpen: false,
+      navLinks: [
+        { name: 'Home', path: '#home' },
+        { name: 'About Us', path: '#about' },
+        { name: 'Contact Us', path: '#contact' }
       ],
-      currentImageIndex: 0,
-      rooms: [
-        {
-          id: 1,
-          name: 'Suite Présidentielle',
-          mainImage: 'https://via.placeholder.com/300x200',
-          shortDescription: 'Notre suite la plus luxueuse avec vue panoramique',
-          features: ['Vue mer', 'Jacuzzi privé', 'Butler'],
-          price: 1500
-        },
-        // ... autres chambres
-      ],
-      services: [
-        {
-          id: 1,
-          icon: 'fa-concierge-bell',
-          name: 'Conciergerie 24/7',
-          description: 'À votre service jour et nuit'
-        },
-        // ... autres services
-      ],
-      galleryImages: [
-        {
-          id: 1,
-          thumbnail: 'https://via.placeholder.com/150',
-          fullSize: 'https://via.placeholder.com/600x400',
-          alt: 'Restaurant gastronomique'
-        },
-        // ... autres images
-      ],
-      reviews: [
-        {
-          id: 1,
-          rating: 5,
-          text: 'Une expérience exceptionnelle, le service est impeccable !',
-          authorName: 'Jean Dupont',
-          authorImage: 'https://via.placeholder.com/50'
-        },
-        // ... autres avis
-      ],
-      sections: [
-        { id: 'about', name: 'À propos' },
-        { id: 'rooms', name: 'Chambres' },
-        { id: 'services', name: 'Services' },
-        { id: 'gallery', name: 'Galerie' },
-        { id: 'reviews', name: 'Avis' },
-        { id: 'contact', name: 'Contact' }
-      ],
-      contactForm: {
-        name: '',
-        email: '',
-        message: ''
-      },
-      bookingForm: {
-        checkIn: '',
-        checkOut: '',
-        guests: 1
-      },
-      showBookingModal: false,
-      showGalleryModal: false,
-      showRoomDetailsModal: false,
-      selectedImage: null,
-      selectedRoom: null,
-      displayedReviews: []
-    }
+      socialLinks: [
+        { url: 'https://twitter.com/CreativeTim', iconClass: 'fab fa-twitter' },
+        { url: 'https://www.facebook.com/CreativeTim', iconClass: 'fab fa-facebook' },
+        { url: 'https://www.instagram.com/CreativeTimOfficial', iconClass: 'fab fa-instagram' }
+      ]
+    };
   },
   methods: {
-    scrollToSection(sectionId) {
-      const element = document.getElementById(sectionId)
-      element.scrollIntoView({ behavior: 'smooth' })
+    toggleNavbar() {
+      this.isNavbarOpen = !this.isNavbarOpen;
     },
-    nextImage() {
-      this.currentImageIndex = (this.currentImageIndex + 1) % this.heroImages.length
+    hoverLink(event) {
+      event.target.classList.add('animate__pulse');
     },
-    prevImage() {
-      this.currentImageIndex = (this.currentImageIndex - 1 + this.heroImages.length) % this.heroImages.length
+    leaveLink(event) {
+      event.target.classList.remove('animate__pulse');
     },
-    openBookingModal() {
-      this.showBookingModal = true
-      document.body.style.overflow = 'hidden'
-    },
-    closeBookingModal() {
-      this.showBookingModal = false
-      document.body.style.overflow = 'auto'
-    },
-    openGalleryModal(image) {
-      this.selectedImage = image
-      this.showGalleryModal = true
-      document.body.style.overflow = 'hidden'
-    },
-    closeGalleryModal() {
-      this.showGalleryModal = false
-      document.body.style.overflow = 'auto'
-    },
-    openRoomDetails(room) {
-      this.selectedRoom = room
-      this.showRoomDetailsModal = true
-      document.body.style.overflow = 'hidden'
-    },
-    closeRoomDetailsModal() {
-      this.showRoomDetailsModal = false
-      document.body.style.overflow = 'auto'
-    },
-    submitContactForm() {
-      // Logique d'envoi du formulaire de contact
-      console.log('Contact form submitted:', this.contactForm)
-      // Réinitialiser le formulaire
-      this.contactForm = { name: '', email: '', message: '' }
-    },
-    submitBooking() {
-      // Logique de réservation
-      console.log('Booking submitted:', this.bookingForm)
-      this.closeBookingModal()
-    },
-    rotateReviews() {
-      // Logique de rotation des avis
-      const reviewsToShow = 3
-      const startIndex = Math.floor(Math.random() * (this.reviews.length - reviewsToShow + 1))
-      this.displayedReviews = this.reviews.slice(startIndex, startIndex + reviewsToShow)
+    scrollToSection(section) {
+      document.querySelector(section).scrollIntoView({ behavior: 'smooth' });
     }
-  },
-  mounted() {
-    // Démarrer le carousel automatique
-    setInterval(this.nextImage, 5000)
-
-    // Démarrer la rotation des avis
-    this.rotateReviews()
-    setInterval(this.rotateReviews, 10000)
-  },
-  beforeDestroy() {
-    // Nettoyer les intervalles si nécessaire
-    clearInterval(this.carouselInterval)
-    clearInterval(this.reviewsInterval)
   }
-}
+};
 </script>
 
-<style scoped>
-.hotel-portfolio {
-  max-width: 100%;
-  overflow-x: hidden;
+<style>
+@import 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css';
+
+.navbar-toggler {
+  transition: transform 0.3s ease-in-out;
 }
 
-/* Header styles */
-.header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.navbar-toggler:hover {
+  transform: rotate(90deg);
 }
 
-.navigation {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+.bg-primary {
+  background-color: #88ff0069 !important;
 }
 
-/* Hero section styles */
-.hero-section {
-  height: 100vh;
-  position: relative;
+.text-warning {
+  color: #01a717c7 !important;
 }
 
-.carousel {
-  height: 100%;
-  position: relative;
-}
-
-.carousel img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.hero-content {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  color: white;
-  z-index: 2;
-}
-
-/* Room cards styles */
-.rooms-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  padding: 2rem;
-}
-
-.room-card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
-  transition: transform 0.3s;
-}
-
-.room-card:hover {
-  transform: scale(1.05);
-}
-
-.room-card img {
-  width: 100%;
-  height: auto;
-}
-
-.room-info {
-  padding: 1rem;
-}
-
-.room-features {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.room-features span {
-  background-color: #f0f0f0;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-}
-
-.room-price {
-  margin-top: 1rem;
-  font-weight: bold;
-}
-
-/* Modal styles */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1001;
-}
-
-.modal-content {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  position: relative;
-}
-
-.close-modal {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  font-size: 1.5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-/* Additional styles for better UX/UI */
-.booking-button button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.booking-button button:hover {
-  background-color: #0056b3;
-}
-
-.carousel-controls button {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
-  border: none;
-  padding: 0.5rem;
-  cursor: pointer;
-  z-index: 3;
-}
-
-.carousel-controls button:first-child {
-  left: 1rem;
-}
-
-.carousel-controls button:last-child {
-  right: 1rem;
-}
-
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
-  padding: 2rem;
-}
-
-.gallery-item {
-  cursor: pointer;
-  transition: transform 0.3s;
-}
-
-.gallery-item:hover {
-  transform: scale(1.05);
-}
-
-.gallery-item img {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
-
-.reviews-carousel {
-  display: flex;
-  overflow-x: auto;
-  gap: 1rem;
-  padding: 2rem;
-}
-
-.review-card {
-  background: #f9f9f9;
-  padding: 1rem;
-  border-radius: 8px;
-  flex: 0 0 calc(33.333% - 1rem);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.review-rating {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.review-rating .star {
-  color: #ddd;
-}
-
-.review-rating .star.filled {
-  color: #ffc107;
-}
-
-.review-text {
-  margin: 1rem 0;
-}
-
-.review-author {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.review-author img {
-  border-radius: 50%;
-}
-
-.contact-content {
-  display: flex;
-  justify-content: space-between;
-  padding: 2rem;
-}
-
-.contact-info {
-  flex: 1;
-}
-
-.contact-form {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.contact-form button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.contact-form button:hover {
-  background-color: #0056b3;
+.section-transition {
+  transition: all 0.5s ease-in-out;
 }
 </style>

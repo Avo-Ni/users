@@ -77,7 +77,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/api/user', name: 'api_user_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function create(Request $request, EntityManagerInterface $entityManager, SerializerInterface $serializer): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
@@ -115,7 +115,25 @@ class UserController extends AbstractController
         $entityManager->persist($user);
         $entityManager->flush();
 
-        return new JsonResponse(['message' => 'Utilisateur créé avec succès.'], JsonResponse::HTTP_CREATED);
+        $resources = $this->resourceRepository->findAll();
+
+        $allowed = $role->getName() === 'admin' ? true : false;
+
+        foreach ($resources as $resource) {
+            $userPrivilege = new UserPrivilege();
+            $userPrivilege->setUser($user);
+            $userPrivilege->setResource($resource);
+            $userPrivilege->setAllowed($allowed);
+
+            $entityManager->persist($userPrivilege);
+        }
+
+        $entityManager->flush();
+
+
+        return new JsonResponse(
+            $serializer->normalize($user, null, ['groups' => 'user:read']),
+            JsonResponse::HTTP_CREATED);
     }
 
     #[Route('/api/user/{id}', name: 'api_user_update', methods: ['PUT'])]
